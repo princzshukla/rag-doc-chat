@@ -1,32 +1,71 @@
+import os
+
 from dotenv import load_dotenv
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
+from langchain_core.documents import Document
 
-load_dotenv()
+from qdrant_client import QdrantClient, models
 
-CHROMA_DIR = "chroma_db"
-CURRENT_COLLECTION = "current_pdf"
+
+QDRANT_URL = os.getenv("QDRANT_URL", "").strip()
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "").strip()
+
+COLLECTION_NAME = "current_pdf"
+
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+
+client = QdrantClient(
+    url=QDRANT_URL,
+    api_key=QDRANT_API_KEY,
+    cloud_inference=True,
+)
 
 
 def retrieve_documents(query: str, k: int = 3):
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="all-MiniLM-L6-v2"
+    results = client.query_points(
+        collection_name=COLLECTION_NAME,
+
+        query=models.Document(
+            text=query,
+            model=EMBEDDING_MODEL,
+        ),
+
+        using="dense",
+
+        limit=k,
+
+        with_payload=True,
     )
 
-    vectordb = Chroma(
-        collection_name=CURRENT_COLLECTION,
-        persist_directory=CHROMA_DIR,
-        embedding_function=embeddings,
-    )
+    documents = []
 
-    results = vectordb.similarity_search(
-        query,
-        k=k
-    )
+    for result in results.points:
 
-    return results
+        payload = result.payload or {}
+
+        documents.append(
+            Document(
+                page_content=payload.get(
+                    "page_content",
+                    ""
+                ),
+
+                metadata={
+                    "document_name": payload.get(
+                        "document_name",
+                        "Uploaded PDF"
+                    ),
+
+                    "page": payload.get(
+                        "page"
+                    ),
+                },
+            )
+        )
+
+    return documents
 
 
 def generate_answer(query: str, documents):

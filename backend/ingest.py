@@ -1,15 +1,27 @@
 import os
+import uuid
+
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+
+from qdrant_client import QdrantClient, models
+
 
 load_dotenv()
 
-CHROMA_DIR = "chroma_db"
+QDRANT_URL = os.getenv("QDRANT_URL", "").strip()
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "").strip()
+COLLECTION_NAME = "current_pdf"
 
-CURRENT_COLLECTION = "current_pdf"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+
+client = QdrantClient(
+    url=QDRANT_URL,
+    api_key=QDRANT_API_KEY,
+    cloud_inference=True,
+)
 
 
 def ingest_pdf(pdf_path: str):
@@ -24,31 +36,55 @@ def ingest_pdf(pdf_path: str):
 
     chunks = splitter.split_documents(docs)
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="all-MiniLM-L6-v2"
-    )
-
-    # Add document name to metadata
     document_name = os.path.basename(pdf_path)
 
-    for chunk in chunks:
-        chunk.metadata["document_name"] = document_name
+    # Delete previous collection
+    if client.collection_exists(COLLECTION_NAME):
+        client.delete_collection(COLLECTION_NAME)
 
-    vectordb = Chroma(
-        collection_name=CURRENT_COLLECTION,
-        embedding_function=embeddings,
-        persist_directory=CHROMA_DIR,
+    # Create new collection
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config={
+            "dense": models.VectorParams(
+                size=384,
+                distance=models.Distance.COSINE,
+            )
+        },
     )
 
-    # Remove old PDF chunks
-    existing = vectordb.get()
+    points = []
 
-    if existing["ids"]:
-        vectordb.delete(ids=existing["ids"])
+    for chunk in chunks:
 
-    # Add new PDF chunks
-    vectordb.add_documents(chunks)
+        payload = {
+            "page_content": chunk.page_content,
+            "document_name": document_name,
+            "page": chunk.metadata.get("page"),
+        }
 
-    print(f"Ingested {len(chunks)} chunks from {pdf_path}")
+        point = models.PointStruct(
+            id=str(uuid.uuid4()),
+            vector={
+                "dense": models.Document(
+                    text=chunk.page_content,
+                    model=EMBEDDING_MODEL,
+                )
+            },
+            payload=payload,
+        )
 
-    return vectordb
+        points.append(point)
+
+    # Upload in batches
+    client.upload_points(
+        collection_name=COLLECTION_NAME,
+        points=points,
+        batch_size=32,
+    )
+
+    print(
+        f"Ingested {len(chunks)} chunks from {pdf_path}"
+    )
+
+    return True

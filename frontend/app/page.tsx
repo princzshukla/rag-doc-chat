@@ -50,7 +50,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/upload",
+        "https://rag-doc-chat-1.onrender.com/upload",
         {
           method: "POST",
           body: formData,
@@ -75,7 +75,7 @@ export default function Home() {
 
       // Load previous chat history for this document
       const historyResponse = await fetch(
-        `http://localhost:8000/history/${data.document_id}`
+        `https://rag-doc-chat-1.onrender.com/history/${data.document_id}`
       );
 
       const historyData = await historyResponse.json();
@@ -143,7 +143,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/ask?query=${encodeURIComponent(
+        `https://rag-doc-chat-1.onrender.com/ask?query=${encodeURIComponent(
           userQuestion
         )}&document_id=${documentId}`,
         {

@@ -19,7 +19,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://frontend-git-main-princzshuklas-projects.vercel.app"
+        "https://frontend-two-beta-93.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],

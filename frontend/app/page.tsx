@@ -196,273 +196,348 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100">
-
-      {/* Header */}
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              📄 DocChat
-            </h1>
-
-            <p className="text-sm text-gray-500">
-              Chat with your PDF using AI
-            </p>
-          </div>
-
-          {uploaded && (
-            <div className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
-              ✓ PDF Ready
+    <main className="min-h-screen bg-[#07090d] text-white selection:bg-violet-500/30">
+      <div className="flex min-h-screen overflow-hidden">
+        {/* Sidebar */}
+        <aside className="hidden w-[280px] shrink-0 border-r border-white/10 bg-[#0b0e13] lg:flex lg:flex-col">
+          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 text-lg shadow-lg shadow-violet-500/20">
+              ✦
             </div>
-          )}
-
-        </div>
-      </header>
-
-      <div className="mx-auto flex max-w-5xl flex-col px-6 py-8">
-
-        {/* Upload Card */}
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-
-          <div className="mb-5">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Upload a document
-            </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Upload one PDF and ask questions about its content.
-            </p>
+            <div>
+              <h1 className="font-semibold tracking-tight">DocChat</h1>
+              <p className="text-xs text-zinc-500">RAG document assistant</p>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={(event) => {
-                const selectedFile =
-                  event.target.files?.[0] || null;
-
-                setFile(selectedFile);
-                setUploaded(false);
+          <div className="p-4">
+            <button
+              onClick={() => {
+                setFile(null);
                 setDocumentId(null);
+                setUploaded(false);
                 setMessages([]);
+                setQuestion("");
                 setError("");
               }}
-              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm"
-            />
-
-            <button
-              onClick={uploadPDF}
-              disabled={!file || uploading}
-              className="rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-medium transition hover:bg-white/[0.1]"
             >
-              {uploading
-                ? "Processing..."
-                : "Upload PDF"}
+              <span className="text-lg">＋</span>
+              New chat
             </button>
-
           </div>
 
-          {file && (
-            <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
-              📎 {file.name}
-            </div>
-          )}
-
-        </section>
-
-        {/* Error */}
-        {error && (
-          <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            ❌ {error}
-          </div>
-        )}
-
-        {/* Chat */}
-        <section className="mt-6 flex min-h-[500px] flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
-
-          {/* Chat Header */}
-          <div className="border-b px-6 py-4">
-
-            <h2 className="font-semibold text-gray-900">
-              Chat
-            </h2>
-
-            <p className="text-sm text-gray-500">
-              {uploaded
-                ? `Ask questions about ${file?.name}`
-                : "Upload a PDF to start chatting"}
+          <div className="flex-1 overflow-y-auto px-4">
+            <p className="mb-3 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+              Current document
             </p>
 
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 space-y-5 overflow-y-auto p-6">
-
-            {messages.length === 0 && !asking && (
-              <div className="flex min-h-[350px] items-center justify-center">
-
-                <div className="text-center">
-
-                  <div className="mb-3 text-5xl">
-                    💬
+            {file ? (
+              <div className="rounded-2xl border border-violet-400/20 bg-violet-500/[0.08] p-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-500/10 text-red-400">
+                    PDF
                   </div>
-
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Start a conversation
-                  </h3>
-
-                  <p className="mt-2 max-w-md text-sm text-gray-500">
-                    Upload a PDF and ask anything about the
-                    information inside it.
-                  </p>
-
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-200">{file.name}</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {uploaded ? "Ready to chat" : uploading ? "Processing..." : "Selected"}
+                    </p>
+                  </div>
                 </div>
-
+                {uploaded && (
+                  <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Document indexed
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 p-4 text-center">
+                <div className="mx-auto mb-2 grid h-9 w-9 place-items-center rounded-xl bg-white/[0.05] text-zinc-500">
+                  PDF
+                </div>
+                <p className="text-xs text-zinc-500">No document loaded</p>
               </div>
             )}
+          </div>
 
-            {messages.map((message, index) => (
+          <div className="border-t border-white/10 p-4">
+            <div className="rounded-xl bg-white/[0.03] p-3 text-xs text-zinc-500">
+              <div className="mb-1 flex items-center gap-2 text-zinc-300">
+                <span>✦</span> AI-powered search
+              </div>
+              Answers are grounded in your uploaded document.
+            </div>
+          </div>
+        </aside>
 
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === "user"
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
-              >
+        {/* Main workspace */}
+        <section className="flex min-w-0 flex-1 flex-col bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.13),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.07),transparent_28%)]">
+          {/* Header */}
+          <header className="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 bg-[#080b10]/80 px-5 backdrop-blur-xl md:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.06] text-violet-300 lg:hidden">
+                ✦
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-semibold text-zinc-100 md:text-base">
+                  {file?.name || "New document chat"}
+                </h2>
+                <p className="text-xs text-zinc-500">
+                  {uploaded ? "Ask questions about your document" : "Upload a PDF to get started"}
+                </p>
+              </div>
+            </div>
 
-                <div
-                  className={`max-w-[80%] rounded-2xl px-5 py-3 ${
-                    message.role === "user"
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
+            <div
+              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${
+                uploaded
+                  ? "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-400"
+                  : "border-white/10 bg-white/[0.04] text-zinc-500"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${uploaded ? "bg-emerald-400" : "bg-zinc-600"}`} />
+              {uploaded ? "Ready" : "Waiting"}
+            </div>
+          </header>
 
-                  <div className="mb-1 text-xs font-semibold opacity-60">
-                    {message.role === "user"
-                      ? "You"
-                      : "AI"}
-                  </div>
+          {/* Content */}
+          <div className="flex min-h-0 flex-1 flex-col">
+            {/* Upload */}
+            {!uploaded && (
+              <div className="px-4 pt-5 md:px-8 md:pt-8">
+                <section className="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20">
+                  <div className="p-5 md:p-7">
+                    <div className="mb-5">
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="rounded-lg bg-violet-500/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-violet-300">
+                          Get started
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold tracking-tight md:text-2xl">
+                        Bring a document to life
+                      </h3>
+                      <p className="mt-1 text-sm text-zinc-500">
+                        Upload a PDF and ask questions using AI-powered retrieval.
+                      </p>
+                    </div>
 
-                  <p className="whitespace-pre-wrap text-sm leading-6">
-                    {message.content}
-                  </p>
-
-                  {/* Sources */}
-                  {message.role === "assistant" &&
-                    message.sources &&
-                    message.sources.length > 0 && (
-
-                      <div className="mt-4 border-t border-gray-300 pt-3">
-
-                        <p className="mb-2 text-xs font-semibold text-gray-500">
-                          Sources
-                        </p>
-
-                        <div className="flex flex-wrap gap-2">
-
-                          {message.sources.map(
-                            (source, sourceIndex) => (
-
-                              <span
-                                key={sourceIndex}
-                                className="rounded-md bg-white px-2 py-1 text-xs text-gray-600 shadow-sm"
-                              >
-                                📄 {source.document}
-
-                                {source.page !== null &&
-                                  ` • Page ${source.page}`}
-                              </span>
-
-                            )
-                          )}
-
+                    <label className="group block cursor-pointer rounded-2xl border border-dashed border-white/15 bg-black/10 p-7 transition hover:border-violet-400/40 hover:bg-violet-500/[0.035] md:p-10">
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={(event) => {
+                          const selectedFile = event.target.files?.[0] || null;
+                          setFile(selectedFile);
+                          setUploaded(false);
+                          setDocumentId(null);
+                          setMessages([]);
+                          setError("");
+                        }}
+                      />
+                      <div className="mx-auto max-w-md text-center">
+                        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-cyan-400/10 text-xl ring-1 ring-white/10 transition group-hover:scale-105">
+                          ↑
                         </div>
+                        <p className="font-medium text-zinc-200">
+                          Drop your PDF here or <span className="text-violet-300">browse</span>
+                        </p>
+                        <p className="mt-1 text-xs text-zinc-600">PDF documents only</p>
+                      </div>
+                    </label>
 
+                    {file && (
+                      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-500/10 text-xs font-bold text-red-400">
+                            PDF
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-zinc-200">{file.name}</p>
+                            <p className="text-xs text-zinc-600">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={uploadPDF}
+                          disabled={uploading}
+                          className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {uploading ? "Processing…" : "Process PDF →"}
+                        </button>
                       </div>
                     )}
-
-                </div>
-
-              </div>
-
-            ))}
-
-            {/* Loading */}
-            {asking && (
-              <div className="flex justify-start">
-
-                <div className="rounded-2xl bg-gray-100 px-5 py-4">
-
-                  <div className="flex items-center gap-2">
-
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500" />
-
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:150ms]" />
-
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gray-500 [animation-delay:300ms]" />
-
                   </div>
-
-                </div>
-
+                </section>
               </div>
             )}
 
-          </div>
+            {/* Error */}
+            {error && (
+              <div className="mx-4 mt-4 rounded-2xl border border-red-400/20 bg-red-400/[0.07] px-4 py-3 text-sm text-red-300 md:mx-8">
+                <div className="flex gap-3">
+                  <span>!</span>
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
 
-          {/* Input */}
-          <div className="border-t p-4">
+            {/* Messages */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8">
+              <div className="mx-auto max-w-3xl">
+                {messages.length === 0 && !asking ? (
+                  <div className="flex min-h-[320px] items-center justify-center text-center">
+                    <div>
+                      <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-violet-500/15 to-cyan-400/10 text-2xl text-violet-300 ring-1 ring-white/10">
+                        ✦
+                      </div>
+                      <h3 className="text-lg font-semibold text-zinc-200">
+                        Your document is ready to talk
+                      </h3>
+                      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
+                        {uploaded
+                          ? "Ask a question and I’ll find the most relevant information from your PDF."
+                          : "Upload a PDF above, then ask anything about its contents."}
+                      </p>
 
-            <div className="flex items-end gap-3 rounded-xl border bg-gray-50 p-2">
+                      {uploaded && (
+                        <div className="mt-5 flex flex-wrap justify-center gap-2">
+                          {["Summarize this document", "What are the key points?", "Explain the main idea"].map(
+                            (prompt) => (
+                              <button
+                                key={prompt}
+                                onClick={() => {
+                                  setQuestion(prompt);
+                                }}
+                                className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-zinc-400 transition hover:border-violet-400/30 hover:text-zinc-200"
+                              >
+                                {prompt}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-7">
+                    {messages.map((message, index) => (
+                      <div key={index} className={`flex gap-3 ${message.role === "user" ? "justify-end" : ""}`}>
+                        {message.role === "assistant" && (
+                          <div className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-bold text-white">
+                            AI
+                          </div>
+                        )}
 
-              <textarea
-                value={question}
-                onChange={(event) =>
-                  setQuestion(event.target.value)
-                }
-                onKeyDown={handleKeyDown}
-                disabled={!uploaded || asking}
-                placeholder={
-                  uploaded
-                    ? "Ask something about your PDF..."
-                    : "Upload a PDF first..."
-                }
-                rows={2}
-                className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none disabled:cursor-not-allowed"
-              />
+                        <div className={`${message.role === "user" ? "max-w-[85%]" : "max-w-[90%]"}`}>
+                          <div
+                            className={`rounded-2xl px-4 py-3.5 text-sm leading-7 ${
+                              message.role === "user"
+                                ? "rounded-br-md bg-violet-600 text-white shadow-lg shadow-violet-900/20"
+                                : "rounded-bl-md border border-white/10 bg-white/[0.045] text-zinc-300"
+                            }`}
+                          >
+                            <p className="whitespace-pre-wrap">{message.content}</p>
 
-              <button
-                onClick={askQuestion}
-                disabled={
-                  !uploaded ||
-                  documentId === null ||
-                  !question.trim() ||
-                  asking
-                }
-                className="rounded-lg bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {asking ? "..." : "Send"}
-              </button>
+                            {message.role === "assistant" &&
+                              message.sources &&
+                              message.sources.length > 0 && (
+                                <div className="mt-4 border-t border-white/10 pt-3">
+                                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                                    Sources
+                                  </p>
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    {message.sources.map((source, sourceIndex) => (
+                                      <div
+                                        key={sourceIndex}
+                                        className="rounded-xl border border-white/10 bg-black/15 p-3"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="grid h-7 w-7 place-items-center rounded-lg bg-red-500/10 text-[9px] font-bold text-red-400">
+                                            PDF
+                                          </span>
+                                          <div className="min-w-0">
+                                            <p className="truncate text-xs font-medium text-zinc-300">
+                                              {source.document}
+                                            </p>
+                                            {source.page !== null && (
+                                              <p className="mt-0.5 text-[11px] text-zinc-600">
+                                                Page {source.page}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                          <p className={`mt-1.5 px-1 text-[10px] text-zinc-700 ${message.role === "user" ? "text-right" : ""}`}>
+                            {message.role === "user" ? "You" : "Document AI"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
 
+                    {asking && (
+                      <div className="flex gap-3">
+                        <div className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 text-xs font-bold">
+                          AI
+                        </div>
+                        <div className="rounded-2xl rounded-bl-md border border-white/10 bg-white/[0.045] px-5 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300 [animation-delay:150ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300 [animation-delay:300ms]" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <p className="mt-2 text-center text-xs text-gray-400">
-              Press Enter to send • Shift + Enter for a new line
-            </p>
-
+            {/* Composer */}
+            <div className="shrink-0 px-4 pb-5 md:px-8 md:pb-7">
+              <div className="mx-auto max-w-3xl">
+                <div className="rounded-2xl border border-white/10 bg-[#0d1118]/95 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl focus-within:border-violet-400/30">
+                  <div className="flex items-end gap-2">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-zinc-600">
+                      ＋
+                    </div>
+                    <textarea
+                      value={question}
+                      onChange={(event) => setQuestion(event.target.value)}
+                      onKeyDown={handleKeyDown}
+                      disabled={!uploaded || asking}
+                      placeholder={uploaded ? "Ask anything about your PDF…" : "Upload a PDF to start chatting…"}
+                      rows={1}
+                      className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-1 py-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 disabled:cursor-not-allowed"
+                    />
+                    <button
+                      onClick={askQuestion}
+                      disabled={!uploaded || documentId === null || !question.trim() || asking}
+                      aria-label="Send message"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-25"
+                    >
+                      ↑
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-2 text-center text-[10px] text-zinc-700">
+                  Enter to send · Shift + Enter for a new line
+                </p>
+              </div>
+            </div>
           </div>
-
         </section>
-
       </div>
-
     </main>
   );
+
 }

@@ -1,17 +1,25 @@
 # Backend
+
 backend/venv/
-backend/__pycache__/
+backend/venv312/
+backend/.venv/
+backend/**pycache**/
 backend/.env
 backend/chroma_db/
 backend/uploads/
 
 # Python
+
 *.pyc
 *.pyo
+*.py[cod]
+**pycache**/
 
 # Frontend
+
 frontend/node_modules/
 frontend/.next/
 
 # Environment
+
 .env
